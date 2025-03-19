@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Я страничка</title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <div id="message"></div>
+    <button onclick="send()">Отправить</button>
+<script>
+    async function send(){
+        const response = fetch("/hello", {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json" },
+            body: JSON.stringify([
+                { name: "Tom", color: "red" },
+                { name: "Bob", color: "blue" },
+                { name: "Sam", color: "green" }
+            ])
+        });
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById("message").textContent = data.message;
+        }
+        else
+            console.log(response);
+    }
+</script>
+</body>
+</html>
