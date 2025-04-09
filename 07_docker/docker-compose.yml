@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=db
+    volumes:
+      - postgres_data1:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Проброс портов (внешний:внутренний)
+    networks:
+      - net
+
+  app:
+    image: my_app
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+#       - db
+      db:
+        condition: service_started
+#     env_file:  
+#       - ./a.env  
+#       - ./b.env
+
+#     environment: 
+#       RACK_ENV: development 
+#       SHOW: "true" 
+#       USER_INPUT:
+
+#     environment:   
+#       - RACK_ENV=development  
+#       - SHOW=true   
+#       - USER_INPUT
+
+#     restart: "no"
+#     restart: always
+#     restart: on-failure
+#     restart: unless-stopped
+
+    networks:
+      - net
+
+
+volumes:
+  postgres_data1:
+
+networks:
+  net:
+    driver: bridge

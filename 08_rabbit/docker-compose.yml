@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=my_password
+      - POSTGRES_DB=db
+    volumes:
+      - postgres_data1:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Проброс портов (внешний:внутренний)
+    networks:
+      - net
+
+
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmuser
+      - RABBITMQ_DEFAULT_PASS=rmpassword
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - net
+
+  app:
+    image: my_app
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+#     env_file:  
+#       - ./a.env  
+#       - ./b.env
+
+#     environment: 
+#       RACK_ENV: development 
+#       SHOW: "true" 
+#       USER_INPUT:
+
+#     environment:   
+#       - RACK_ENV=development  
+#       - SHOW=true   
+#       - USER_INPUT
+
+#     restart: "no"
+#     restart: always
+#     restart: on-failure
+#     restart: unless-stopped
+
+    networks:
+      - net
+
+  app_consume:
+    image: my_app
+    build: .
+    depends_on:
+      db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    command: ["python", "rabbit_consumer.py"]
+#     env_file:  
+#       - ./a.env  
+#       - ./b.env
+
+#     environment: 
+#       RACK_ENV: development 
+#       SHOW: "true" 
+#       USER_INPUT:
+
+#     environment:   
+#       - RACK_ENV=development  
+#       - SHOW=true   
+#       - USER_INPUT
+
+#     restart: "no"
+#     restart: always
+#     restart: on-failure
+#     restart: unless-stopped
+
+    networks:
+      - net
+
+
+volumes:
+  postgres_data1:
+
+networks:
+  net:
+    driver: bridge
